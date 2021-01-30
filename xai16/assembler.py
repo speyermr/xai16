@@ -1,4 +1,4 @@
-from aqa32.constants import *
+from xai16.constants import *
 
 I = Instruction
 

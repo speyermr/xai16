@@ -1,7 +1,7 @@
-from aqa32.assembler import assemble
-from aqa32.render import render
+from xai16.assembler import assemble
+from xai16.render import render
 from time import sleep 
-import aqa32.emulator as emulator
+import xai16.emulator as emulator
 
 import sys
 path = sys.argv[1]

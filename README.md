@@ -2,9 +2,9 @@
 
 
 ```Python
-import aqa32
+import xai16
 
-aqa32.emulate('''
+xai16.emulate('''
 start:  MOV R0, #5
         MOV R1, #6
         ADD R2, R0, R1
