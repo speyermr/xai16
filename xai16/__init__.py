@@ -21,3 +21,9 @@ def run(source, loop=1000):
             raise Exception('loop!')
         emu.step()
     return emu
+
+def compile(source):
+    lines = source.splitlines()
+    assembly, label_map, source_map = xai16.lexer.lex(lines)
+    exe = xai16.assembler.assemble(assembly, label_map)
+    return exe, source_map
