@@ -1,4 +1,5 @@
 from xai16.constants import *
+from xai16.parser import parse
 
 I = Instruction
 
@@ -6,13 +7,12 @@ def assemble(text):
     exe = []
     lines = text.splitlines()
     assembly, labels, sourcemap = parse(lines)
-    for tokens in assembly:
+    for address, tokens in enumerate(assembly):
         head = tokens[0]
         if head in set(Instr):
             try:
                 word = encode(tokens, labels)
             except Exception as ex:
-                address = len(exe)
                 ii = sourcemap[address]
                 line = lines[ii].strip()
                 raise Exception(f'in instruction {ii} "{line}": {ex}')
@@ -24,7 +24,7 @@ def assemble(text):
 def encode(tokens, labels):
     instruction_token, *args = tokens
 
-    instruction, cond, s_flag = Lexicon[instruction_token]
+    instruction, cond, s_flag = parse_instruction(instruction_token)
 
     rd, rn = None, None
     am, op2 = 0, 0
@@ -110,40 +110,3 @@ def parse_instruction(instruction):
             return (v, cond, s_flag)
 
     raise Exception(f'unknown instruction {instruction} / {i}')
-
-
-def parse(lines):
-    assembly = []
-    labels = {}
-    sourcemap = {}
-    label = None
-    for ii, line in enumerate(lines):
-        tokens = tokenize(line)
-        if tokens == []:
-            continue # Empty line
-        # The first token is a label if it ends in ':'
-        if tokens[0][-1] == ':':
-            label = tokens[0][:-1]
-            tokens = tokens[1:]
-        if tokens == []:
-            continue # Empty line (with label)
-        address = len(assembly)
-        if label:
-            labels[label] = address
-        assembly.append(tokens)
-        sourcemap[address] = ii
-        label = None
-    return assembly, labels, sourcemap
-
-
-def tokenize(line):
-    r = []
-    for token in line.split(' '):
-        if token == '':
-            continue
-        if token[0:2] == '//':
-            break
-        if token[-1] == ',':
-            token = token[:-1]
-        r.append(token)
-    return r
