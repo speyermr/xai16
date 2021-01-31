@@ -3,8 +3,6 @@ from xai16.constants import *
 MEMORY_SIZE = 256
 NUM_REGISTERS = 13
 
-I = Instruction
-
 class Emulator():
     def __init__(self, memory, registers=None, pc=0, cmp=0, screen='', halted=False):
         self.memory = memory
@@ -30,62 +28,31 @@ class Emulator():
         am = (c0 >> 8) & 0b1
         rn = (c0 >> 4) & 0b1111
         rd = (c0 >> 0) & 0b1111
-
-
         instruction = list(Instruction)[opcode]
+        if am != AddressMode.Immediate: op2 = r[op2]
 
-        if am == AddressMode.Immediate:
-            pass
-        elif am == AddressMode.Direct:
-            op2 = r[op2]
-        else:
-            raise Exception(f'unknown address mode: {am}')
+        if condition == Conditional.AL: pass
+        elif condition == Conditional.EQ and not self.cmp == 0: return
+        elif condition == Conditional.NE and not self.cmp != 0: return
+        elif condition == Conditional.GT and not self.cmp > 0: return
+        elif condition == Conditional.GE and not self.cmp >= 0: return
+        elif condition == Conditional.LT and not self.cmp < 0: return
+        elif condition == Conditional.LE and not self.cmp <= 0: return
 
-        if condition == Conditional.AL:
-            pass
-        elif condition == Conditional.EQ and not self.cmp == 0:
-            return
-        elif condition == Conditional.NE and not self.cmp != 0:
-            return
-        elif condition == Conditional.GT and not self.cmp > 0:
-            return
-        elif condition == Conditional.GE and not self.cmp >= 0:
-            return
-        elif condition == Conditional.LT and not self.cmp < 0:
-            return
-        elif condition == Conditional.LE and not self.cmp <= 0:
-            return
-
-        if instruction == I.HALT:
-            self.halted = True
-        elif instruction == I.LDR:
-            r[rd] = self.memory[op2]
-        elif instruction == I.STR: 
-            self.memory[op2] = r[rd]
-        elif instruction == I.ADD:
-            r[rd] = r[rn] + op2
-        elif instruction == I.SUB:
-            r[rd] = r[rn] - op2
-        elif instruction == I.MOV:
-            r[rd] = op2
-        elif instruction == I.CMP:
-            self.cmp = r[rn] - op2
-        elif instruction == I.B:
-            self.pc = op2
-        elif instruction == I.BL:
-            r[11] = self.pc
-            self.pc = op2
-        elif instruction == I.AND:
-            r[rd] = r[rn] & op2
-        elif instruction == I.ORR:
-            r[rd] = r[rn] & op2
-        elif instruction == I.EOR:
-            r[rd] = r[rn] ^ op2
-        elif instruction == I.MVN:
-            r[rd] = ~ op2
-        elif instruction == I.LSL:
-            r[rd] = r[rn] << op2
-        elif instruction == I.LSR:
-            r[rd] = r[rn] >> op2
+        if instruction == Instruction.HALT:   self.halted = True
+        elif instruction == Instruction.LDR:  r[rd] = self.memory[op2]
+        elif instruction == Instruction.STR:  self.memory[op2] = r[rd]
+        elif instruction == Instruction.ADD:  r[rd] = r[rn] + op2
+        elif instruction == Instruction.SUB:  r[rd] = r[rn] - op2
+        elif instruction == Instruction.MOV:  r[rd] = op2
+        elif instruction == Instruction.CMP:  self.cmp = r[rn] - op2
+        elif instruction == Instruction.B:    self.pc = op2
+        elif instruction == Instruction.BL:   r[11], self.pc = self.pc, op2
+        elif instruction == Instruction.AND:  r[rd] = r[rn]  & op2
+        elif instruction == Instruction.ORR:  r[rd] = r[rn]  & op2
+        elif instruction == Instruction.EOR:  r[rd] = r[rn]  ^ op2
+        elif instruction == Instruction.MVN:  r[rd] =        ~ op2
+        elif instruction == Instruction.LSL:  r[rd] = r[rn] << op2
+        elif instruction == Instruction.LSR:  r[rd] = r[rn] >> op2
         else:
             raise Exception(f'unknown instruction {instruction}')
