@@ -1,4 +1,4 @@
-from xai16.constants import Instruction, AddressMode, Conditional
+from xai16.constants import Instruction, AddressMode, Conditional_Instructions
 
 I = Instruction
 
@@ -12,40 +12,43 @@ def assemble(assembly, label_map):
 def assemble_one(tokens, label_map):
     instruction_token, *args = tokens
 
-    instruction, condition = parse_instruction(instruction_token)
+    instruction, condition = Conditional_Instructions[instruction_token]
     rd, rn, am, op2 = None, None, None, 0
 
     # <address>
-    if instruction in {I.B}:
+    if instruction in {I.B, I.BL}:
         assert len(args) == 1, f'{instruction} <address>'
         am, op2 = to_address(args[0], label_map)
 
     # Rd, <address>
-    if instruction in {I.LDR, I.STR}: #, I.INP, I.OUT}:
+    elif instruction in {I.LDR, I.STR}: #, I.INP, I.OUT}:
         assert len(args) == 2, f'{instruction} <Rd> <address>'
         rd, token = args
         am, op2 = to_address(token, label_map)
 
     # Rd, op2
-    if instruction in {I.MOV, I.MVN}:
+    elif instruction in {I.MOV, I.MVN}:
         assert len(args) == 2, f'{instruction} <Rd> <op2>'
         rd, token = args
         am, op2 = to_operand(token)
 
     # Rd, Rn, op2
-    if instruction in {I.ADD, I.SUB, I.AND, I.ORR, I.EOR, I.LSL, I.LSR}:
+    elif instruction in {I.ADD, I.SUB, I.AND, I.ORR, I.EOR, I.LSL, I.LSR}:
         assert len(args) == 3, f'{instruction} <Rd> <Rn> <op2>'
         rd, rn, token = args
         am, op2 = to_operand(token)
 
     # Rn, op2
-    if instruction in {I.CMP}:
+    elif instruction in {I.CMP}:
         rn, token = args
         am, op2 = to_operand(token)
 
     # none
-    if instruction in {I.HALT}:
+    elif instruction in {I.HALT}:
         pass
+
+    else:
+        raise Exception(f'unimplemented instructions {instruction}')
     
     opcode = instruction.value
     rd = to_register(rd) if rd else 0
@@ -91,22 +94,3 @@ def to_register(name):
         return int(name[1:])
     else:
         raise Exception(f'unknown register "{name}"')
-
-def parse_instruction(instruction):
-    for candidate in Instruction:
-        if instruction.startswith(candidate.name):
-            i = candidate
-            break
-    else:
-        raise Exception(f'unknown instruction {instruction}')
-
-    l = len(i.name)
-    conditional = instruction[l:]
-    if conditional == '':
-        return (i, Conditional.AL)
-    else:
-        for candidate in Conditional:
-            if conditional == candidate.name:
-                return (i, candidate)
-        else:
-            raise Exception(f'unknown conditional {conditional!r} / {instruction!r}')

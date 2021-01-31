@@ -31,11 +31,15 @@ class Emulator():
         rn = (c0 >> 4) & 0b1111
         rd = (c0 >> 0) & 0b1111
 
+
         instruction = list(Instruction)[opcode]
+
         if am == AddressMode.Immediate:
             pass
-        if am == AddressMode.Direct:
+        elif am == AddressMode.Direct:
             op2 = r[op2]
+        else:
+            raise Exception(f'unknown address mode: {am}')
 
         if condition == Conditional.AL:
             pass
@@ -68,6 +72,9 @@ class Emulator():
             self.cmp = r[rn] - op2
         elif instruction == I.B:
             self.pc = op2
+        elif instruction == I.BL:
+            r[11] = self.pc
+            self.pc = op2
         elif instruction == I.AND:
             r[rd] = r[rn] & op2
         elif instruction == I.ORR:
@@ -81,4 +88,4 @@ class Emulator():
         elif instruction == I.LSR:
             r[rd] = r[rn] >> op2
         else:
-            raise Exception(f'unknown instruction {opcode}')
+            raise Exception(f'unknown instruction {instruction}')
