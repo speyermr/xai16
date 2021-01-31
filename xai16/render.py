@@ -1,4 +1,4 @@
-def render(emulator, assembly, sourcemap):
+def render(emulator, source, source_map):
     row = lambda: [' '] * 80
     frame = [row() for _ in range(24)]
 
@@ -26,10 +26,21 @@ def render(emulator, assembly, sourcemap):
     draw(35, 3, '{:04x}'.format(emulator.cmp))
     draw(2, 5, '>' + emulator.screen)
 
-    lines = assembly.splitlines()
+    lines = source.splitlines()
     for ii, line in enumerate(lines):
         mk = '>' if emulator.pc == ii else ' '
         if 7 + ii < 24:
             draw(2, 7 + ii, f'{mk} {ii} {line}')
 
     return "\n".join(''.join(row) for row in frame)
+
+
+def registers(emulator):
+    # PC   CMP  R0   R1   R2   R3   R4   R5   R6   R7   R8   R9   R10  R11  R12
+    # .... .... .... .... .... .... .... .... .... .... .... .... .... .... ....
+    values = [emulator.pc, emulator.cmp] + [emulator.registers[n] for n in range(13)]
+    return ' '.join(f'{v:04x}' for v in values)
+
+def registers_header():
+    names = ['PC', 'CMP'] + [f'R{n}' for n in range(13)]
+    return ' '.join(f'{n:4s}' for n in names)

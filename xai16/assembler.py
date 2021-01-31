@@ -13,7 +13,7 @@ def assemble_one(tokens, label_map):
     instruction_token, *args = tokens
 
     instruction, condition = parse_instruction(instruction_token)
-    rd, rn, am, op2 = None, None, 0, 0
+    rd, rn, am, op2 = None, None, None, 0
 
     # <address>
     if instruction in {I.B}:
@@ -22,17 +22,19 @@ def assemble_one(tokens, label_map):
 
     # Rd, <address>
     if instruction in {I.LDR, I.STR}: #, I.INP, I.OUT}:
-        assert len(args) == 2, f'{instruction} {Rd} {address}'
+        assert len(args) == 2, f'{instruction} <Rd> <address>'
         rd, token = args
         am, op2 = to_address(token, label_map)
 
     # Rd, op2
     if instruction in {I.MOV, I.MVN}:
+        assert len(args) == 2, f'{instruction} <Rd> <op2>'
         rd, token = args
         am, op2 = to_operand(token)
 
     # Rd, Rn, op2
     if instruction in {I.ADD, I.SUB, I.AND, I.ORR, I.EOR, I.LSL, I.LSR}:
+        assert len(args) == 3, f'{instruction} <Rd> <Rn> <op2>'
         rd, rn, token = args
         am, op2 = to_operand(token)
 
@@ -48,13 +50,14 @@ def assemble_one(tokens, label_map):
     opcode = instruction.value
     rd = to_register(rd) if rd else 0
     rn = to_register(rn) if rn else 0
+    am = am.value if am else 0
 
     # op__ c__A rn__ rd__  |  operand2
     # op__ c__A rn__ rd__  |  address
     v = 0
     v |= opcode << 12
     v |= condition.value << 9
-    v |= am.value << 8
+    v |= am << 8
     v |= rn << 4
     v |= rd
 
@@ -69,7 +72,7 @@ def to_address(token, label_map):
         reg = int(token[2:-1])
         return AddressMode.Direct, reg
     else:
-        address = int(token)
+        address = int(token, 0)
         return AddressMode.Immediate, address
 
 def to_operand(token):
@@ -90,17 +93,20 @@ def to_register(name):
         raise Exception(f'unknown register "{name}"')
 
 def parse_instruction(instruction):
-    i = instruction
-
-    for c in Conditional:
-        if i[-2:] == c.name:
-            i = i[:-2]
+    for candidate in Instruction:
+        if instruction.startswith(candidate.name):
+            i = candidate
             break
     else:
-        c = Conditional.AL
+        raise Exception(f'unknown instruction {instruction}')
 
-    for i0 in Instruction:
-        if i0.name == i:
-            return (i0, c)
-
-    raise Exception(f'unknown instruction {instruction!r} / {i!r}')
+    l = len(i.name)
+    conditional = instruction[l:]
+    if conditional == '':
+        return (i, Conditional.AL)
+    else:
+        for candidate in Conditional:
+            if conditional == candidate.name:
+                return (i, candidate)
+        else:
+            raise Exception(f'unknown conditional {conditional!r} / {instruction!r}')

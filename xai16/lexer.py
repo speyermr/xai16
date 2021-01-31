@@ -29,7 +29,7 @@ def lex(lines):
 
         # Consume whatever label we have (either from this line, or the
         # previous one.)
-        address = len(assembly)
+        address = 2 * len(assembly)
         if label:
             label_map[label] = address
 

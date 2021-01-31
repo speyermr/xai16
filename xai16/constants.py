@@ -36,3 +36,5 @@ class Conditional(Enum):
     NE = 2
     GT = 3
     LT = 4
+    GE = 5
+    LE = 6
