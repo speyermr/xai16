@@ -7,10 +7,8 @@ class Device(Enum):
 
 
 class AddressMode(Enum):
-    DIR = 0b00
-    IMM = 0b01
-    IND = 0b10
-    #     0b01
+    Direct = 0
+    Immediate = 1
 
 
 class Instruction(Enum):
@@ -33,7 +31,8 @@ class Instruction(Enum):
 
 
 class Conditional(Enum):
-    EQ = 0b001
-    NE = 0b010
-    GT = 0b011
-    LT = 0b100
+    AL = 0
+    EQ = 1
+    NE = 2
+    GT = 3
+    LT = 4

@@ -38,3 +38,28 @@ start:  MOV R0, #5
 
     CMP Rn, op2
     HALT
+
+
+    # op__ c__s rn__ rd__  |  A?op eran d2__ ____
+    # op__ c__s rn__ rd__  |  A?ad dres s___ ____
+    
+
+        MOV R0, #0
+    loop:
+        LDR R1, [R0]
+        CMP R1, #0
+        BEQ done
+        OUT R1, DEV_CHAR
+        ADD R0, R0, #1
+        B loop
+
+    done:
+        HALT
+
+
+    Immediate:
+        "ADD R0, R0, #4"
+        "LDR R0, 4"
+    Indirect:
+        "ADD R0, R0, R9"
+        "LDR R0, [R1]"
